@@ -156,6 +156,26 @@ World.prototype.setBlockID = function (val, x, y, z) {
     if (chunk) chunk.set(ix, iy, iz, val);
 };
 
+/** @param x,y,z @CUSTOM */
+World.prototype.setObjectData = function (object, x, y, z) {
+    var i = this._worldCoordToChunkCoord(x);
+    var j = this._worldCoordToChunkCoord(y);
+    var k = this._worldCoordToChunkCoord(z);
+
+    // logic inside the chunk will trigger a remesh for chunk and
+    // any neighbors that need it
+    var chunk = this._getChunk(i, j, k);
+    if (chunk) {
+        const { objectID, metadata, coords } = object;
+        chunk.objects.set(objectID, metadata);
+        if (coords) {
+            coords.forEach((coord) => {
+                chunk.coordsToObjectID.set(coord, objectID);
+            });
+        }
+    }
+};
+
 /** @param x,y,z */
 World.prototype.isBoxUnobstructed = function (box) {
     var base = box.base;

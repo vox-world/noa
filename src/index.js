@@ -447,13 +447,22 @@ Engine.prototype.getBlock = function (x, y, z) {
     }
 };
 
-/** @param x,y,z */
+/** @param x,y,z @CUSTOM */
 Engine.prototype.setBlock = function (id, x, y, z) {
     // skips the entity collision check
     if (x.length) {
-        return this.world.setBlockID(id, x[0], x[1], x[2]);
+        this.world.setBlockID(id, x[0], x[1], x[2]);
     } else {
-        return this.world.setBlockID(id, x, y, z);
+        this.world.setBlockID(id, x, y, z);
+    }
+};
+
+/** @CUSTOM */
+Engine.prototype.setObject = function (objectData, x, y, z) {
+    if (x.length) {
+        this.world.setObjectData(objectData, x[0], x[1], x[2]);
+    } else {
+        this.world.setObjectData(objectData, x, y, z);
     }
 };
 

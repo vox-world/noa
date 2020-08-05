@@ -236,6 +236,15 @@ function Registry(noa, opts) {
         return blockProps[id];
     };
 
+    /// MAX ADDED THIS
+    /**
+     * Get block mesh if it has one
+     * @param id
+     */
+    this.getBlockMesh = function (id) {
+        return blockMeshes[id] || null;
+    };
+
     // look up a block ID's face material
     // dir is a value 0..5: [ +x, -x, +y, -y, +z, -z ]
     this.getBlockFaceMaterial = function (blockId, dir) {

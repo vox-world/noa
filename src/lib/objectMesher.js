@@ -83,7 +83,6 @@ function ObjectMesher() {
             useModelMaterial: true,
         });
         for (var key in chunk._objectBlocks) {
-            console.log("key", key);
             var blockDat = chunk._objectBlocks[key];
             var blockID = blockDat.id;
             var mesh = objectMeshLookup[blockID];
