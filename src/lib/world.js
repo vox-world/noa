@@ -186,9 +186,10 @@ World.prototype.getObject = function (x, y, z) {
     return object;
 };
 
-/** @param key @CUSTOM */
+/** @param objectKey,object @CUSTOM */
 World.prototype.setObject = function (objectKey, object) {
-    // This will NOT update the object mesh - only modifying the object blocks will.
+    // This will NOT update trigger a remesh of the chunk - only modifying
+    // the object blocks (voxel data) will.
     const { blockKeys } = object;
     const chunkIDs = getChunkIDs(this, blockKeys);
 
@@ -206,7 +207,7 @@ World.prototype.setObject = function (objectKey, object) {
     });
 };
 
-/** @param x,y,z @CUSTOM */
+/** @param objectKey,param @CUSTOM */
 World.prototype.deleteObject = function (objectKey, object) {
     const { blockKeys } = object;
     const chunkIDs = getChunkIDs(this, blockKeys);
