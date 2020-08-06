@@ -27,8 +27,6 @@ function ObjectMesher() {
     this.initChunk = function (chunk) {
         chunk._objectBlocks = {};
         chunk._objectSystems = [];
-
-        chunk._objectMeshes = {};
     };
 
     this.disposeChunk = function (chunk) {
@@ -64,6 +62,7 @@ function ObjectMesher() {
     };
 
     this.buildObjectMeshes = function (chunk) {
+        console.log("Building object meshes");
         profile_hook("start");
 
         var scene = chunk.noa.rendering.getScene();
@@ -83,6 +82,7 @@ function ObjectMesher() {
             useModelMaterial: true,
         });
         for (var key in chunk._objectBlocks) {
+            console.log(key);
             var blockDat = chunk._objectBlocks[key];
             var blockID = blockDat.id;
             var mesh = objectMeshLookup[blockID];
@@ -97,35 +97,42 @@ function ObjectMesher() {
                 y0 + blockDat.y,
                 z0 + blockDat.z,
             ];
-            mesh = mesh.clone();
-            if (mesh.material) {
-                mesh.material = mesh.material.clone();
+            // Clone mesh if it exists
+            if (mesh) {
+                mesh = mesh.clone();
+                if (mesh.material) {
+                    mesh.material = mesh.material.clone();
+                }
             }
             if (handlerFn) {
-                const coords = _x + "|" + _y + "|" + _z;
-                const objectID = chunk.coordsToObjectID.get(coords);
-                const object = chunk.objects.get(objectID);
-                mesh = handlerFn(mesh, object, objectID, coords);
+                // key is in local coordinates (relative to chunk world coordinates)
+                // blockKey is in world coordinates
+                const blockKey = getBlockKey(_x, _y, _z);
+                const objectKey = chunk.blockToObject.get(blockKey);
+                const object = chunk.objects.get(objectKey);
+                // Get customized mesh
+                mesh = handlerFn(mesh, blockKey, object, objectKey);
             }
             var setShape = function (particle, partIndex, shapeIndex) {
-                // set (local) pos and call handler (with global coords)
                 particle.position.set(
                     blockDat.x + 0.5,
                     blockDat.y,
                     blockDat.z + 0.5
                 );
-                // if (handlerFn) handlerFn(particle);
             };
+            console.log(mesh);
             sps.addShape(mesh, 1, { positionFunction: setShape });
-            // var mat = mesh.material;
-            // var matIndex = mat ? scene.materials.indexOf(mat) : -1;
-            // if (!matIndexes[matIndex]) matIndexes[matIndex] = {};
-            // if (!matIndexes[matIndex][blockID])
-            //     matIndexes[matIndex][blockID] = [];
-            // matIndexes[matIndex][blockID].push(key);
         }
         const merged = sps.buildMesh();
+        chunk._objectSystems.push(merged);
         return [merged];
+
+        // var mat = mesh.material;
+        // var matIndex = mat ? scene.materials.indexOf(mat) : -1;
+        // if (!matIndexes[matIndex]) matIndexes[matIndex] = {};
+        // if (!matIndexes[matIndex][blockID])
+        //     matIndexes[matIndex][blockID] = [];
+        // matIndexes[matIndex][blockID].push(key);
 
         // return meshes;
         // profile_hook("preprocess");
@@ -167,43 +174,43 @@ function ObjectMesher() {
         // return meshes;
     };
 
-    function buildSPSforMaterialIndex(chunk, scene, meshHash, x0, y0, z0) {
-        var blockHash = chunk._objectBlocks;
-        // base sps
-        var sps = new SolidParticleSystem("object_sps_" + chunk.id, scene, {
-            updatable: false,
-        });
+    // function buildSPSforMaterialIndex(chunk, scene, meshHash, x0, y0, z0) {
+    //     var blockHash = chunk._objectBlocks;
+    //     // base sps
+    //     var sps = new SolidParticleSystem("object_sps_" + chunk.id, scene, {
+    //         updatable: false,
+    //     });
 
-        var blockHandlerLookup = chunk.noa.registry._blockHandlerLookup;
-        var objectMeshLookup = chunk.noa.registry._blockMeshLookup;
+    //     var blockHandlerLookup = chunk.noa.registry._blockHandlerLookup;
+    //     var objectMeshLookup = chunk.noa.registry._blockMeshLookup;
 
-        // run through mesh hash adding shapes and position functions
-        for (var blockID in meshHash) {
-            var mesh = objectMeshLookup[blockID];
-            var blockArr = meshHash[blockID];
-            console.log(`blockArr`, blockArr);
-            var count = blockArr.length;
+    //     // run through mesh hash adding shapes and position functions
+    //     for (var blockID in meshHash) {
+    //         var mesh = objectMeshLookup[blockID];
+    //         var blockArr = meshHash[blockID];
+    //         console.log(`blockArr`, blockArr);
+    //         var count = blockArr.length;
 
-            var handlerFn;
-            var handlers = blockHandlerLookup[blockID];
-            if (handlers) {
-                handlerFn = handlers.onCustomMeshCreate;
-            }
-            var setShape = function (particle, partIndex, shapeIndex) {
-                var key = blockArr[shapeIndex];
-                var dat = blockHash[key];
+    //         var handlerFn;
+    //         var handlers = blockHandlerLookup[blockID];
+    //         if (handlers) {
+    //             handlerFn = handlers.onCustomMeshCreate;
+    //         }
+    //         var setShape = function (particle, partIndex, shapeIndex) {
+    //             var key = blockArr[shapeIndex];
+    //             var dat = blockHash[key];
 
-                // set (local) pos and call handler (with global coords)
-                particle.position.set(dat.x + 0.5, dat.y, dat.z + 0.5);
-                if (handlerFn) handlerFn(particle);
-            };
-            sps.addShape(mesh, count, { positionFunction: setShape });
-            blockArr.length = 0;
-        }
+    //             // set (local) pos and call handler (with global coords)
+    //             particle.position.set(dat.x + 0.5, dat.y, dat.z + 0.5);
+    //             if (handlerFn) handlerFn(particle);
+    //         };
+    //         sps.addShape(mesh, count, { positionFunction: setShape });
+    //         blockArr.length = 0;
+    //     }
 
-        return sps;
-    }
+    //     return sps;
+    // }
 }
 
-import { makeProfileHook } from "./util";
+import { makeProfileHook, getBlockKey, parseBlockKey } from "./util";
 var profile_hook = PROFILE ? makeProfileHook(50, "Object meshing") : () => {};

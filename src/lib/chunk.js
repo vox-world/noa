@@ -51,8 +51,8 @@ function Chunk(noa, id, i, j, k, size, dataArray) {
     this.z = k * size;
 
     // Objects
-    this.objects = new Map();
-    this.coordsToObjectID = new Map();
+    this.blockToObject = new Map(); // blockKey -> objectKey
+    this.objects = new Map(); // objectKey -> object
 
     // flags to track if things need re-meshing
     this._terrainDirty = false;
@@ -92,6 +92,7 @@ Chunk.prototype._updateVoxelArray = function (dataArray) {
     this.voxels = dataArray;
     this._terrainDirty = true;
     this._objectsDirty = true;
+    console.log("settings objects dirty true");
     objectMesher.initChunk(this);
     packVoxelData(this);
 };

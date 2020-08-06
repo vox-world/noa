@@ -1,3 +1,13 @@
+// Block key is the string x|y|z representing its global coords.
+export function getBlockKey(x, y, z) {
+    return x + "|" + y + "|" + z;
+}
+
+export function parseBlockKey(key) {
+    var arr = key.split("|");
+    return [parseInt(arr[0]), parseInt(arr[1]), parseInt(arr[2])];
+}
+
 // helper to swap item to end and pop(), instead of splice()ing
 export function removeUnorderedListItem(list, item) {
     var i = list.indexOf(item);

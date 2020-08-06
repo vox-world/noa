@@ -157,23 +157,36 @@ World.prototype.setBlockID = function (val, x, y, z) {
 };
 
 /** @param x,y,z @CUSTOM */
-World.prototype.setObjectData = function (object, x, y, z) {
-    var i = this._worldCoordToChunkCoord(x);
-    var j = this._worldCoordToChunkCoord(y);
-    var k = this._worldCoordToChunkCoord(z);
+World.prototype.setObject = function (objectKey, object) {
+    // This will NOT update the object mesh - only modifying the object blocks will.
+    const { blockKeys } = object;
+    if (!blockKeys || !blockKeys.length) return;
 
-    // logic inside the chunk will trigger a remesh for chunk and
-    // any neighbors that need it
-    var chunk = this._getChunk(i, j, k);
-    if (chunk) {
-        const { objectID, metadata, coords } = object;
-        chunk.objects.set(objectID, metadata);
-        if (coords) {
-            coords.forEach((coord) => {
-                chunk.coordsToObjectID.set(coord, objectID);
-            });
+    // Get all unique chunks spanned by object
+    const chunkIDs = [
+        ...new Set(
+            blockKeys.map((key) => {
+                const [x, y, z] = parseBlockKey(key);
+                var i = this._worldCoordToChunkCoord(x);
+                var j = this._worldCoordToChunkCoord(y);
+                var k = this._worldCoordToChunkCoord(z);
+                return getChunkID(i, j, k);
+            })
+        ),
+    ];
+
+    chunkIDs.forEach((id) => {
+        const [i, j, k] = parseChunkID(id);
+        const chunk = this._getChunk(i, j, k);
+        if (chunk) {
+            chunk.objects.set(objectKey, object);
+            if (blockKeys) {
+                blockKeys.forEach((key) => {
+                    chunk.blockToObject.set(key, objectKey);
+                });
+            }
         }
-    }
+    });
 };
 
 /** @param x,y,z */
@@ -197,8 +210,8 @@ World.prototype.isBoxUnobstructed = function (box) {
  * @param array
  * @param userData
  */
-World.prototype.setChunkData = function (id, array, userData, objectsData) {
-    setChunkData(this, id, array, userData, objectsData);
+World.prototype.setChunkData = function (id, array, userData, objects) {
+    setChunkData(this, id, array, userData, objects);
 };
 
 /** Tells noa to discard voxel data within a given `AABB` (e.g. because
@@ -531,7 +544,7 @@ function requestNewChunk(world, id) {
 
 // called when client sets a chunk's voxel data
 // If userData is passed in it will be attached to the chunk
-function setChunkData(world, reqID, array, userData, objectsData) {
+function setChunkData(world, reqID, array, userData, objects) {
     var arr = reqID.split("|");
     var i = parseInt(arr.shift());
     var j = parseInt(arr.shift());
@@ -565,14 +578,9 @@ function setChunkData(world, reqID, array, userData, objectsData) {
             if (nab._neighborCount > 20) queueChunkForRemesh(world, nab);
         });
     }
-    // Add objects data to the chunk, update block coordinates to object ID mapping
-    Object.entries(objectsData).forEach(([objectID, object]) => {
-        chunk.objects.set(objectID, object);
-        if (object.coords) {
-            object.coords.forEach((coord) => {
-                chunk.coordsToObjectID.set(coord, objectID);
-            });
-        }
+    // Add all objects
+    Object.entries(objects).forEach(([key, object]) => {
+        world.setObject(key, object);
     });
 
     // chunk can now be meshed...
@@ -738,7 +746,12 @@ function _report(world, name, arr, ext) {
     console.log(name, out);
 }
 
-import { makeProfileHook, makeThroughputHook } from "./util";
+import {
+    makeProfileHook,
+    makeThroughputHook,
+    parseBlockKey,
+    getBlockKey,
+} from "./util";
 var profile_hook = PROFILE ? makeProfileHook(100, "world ticks:") : () => {};
 var profile_queues_hook = PROFILE_QUEUES
     ? makeThroughputHook(100, "chunks/sec:")

@@ -458,12 +458,8 @@ Engine.prototype.setBlock = function (id, x, y, z) {
 };
 
 /** @CUSTOM */
-Engine.prototype.setObject = function (objectData, x, y, z) {
-    if (x.length) {
-        this.world.setObjectData(objectData, x[0], x[1], x[2]);
-    } else {
-        this.world.setObjectData(objectData, x, y, z);
-    }
+Engine.prototype.setObject = function (key, object) {
+    this.world.setObject(key, object);
 };
 
 /**
