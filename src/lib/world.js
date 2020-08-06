@@ -156,24 +156,41 @@ World.prototype.setBlockID = function (val, x, y, z) {
     if (chunk) chunk.set(ix, iy, iz, val);
 };
 
-/** @param x,y,z @CUSTOM */
-World.prototype.setObject = function (objectKey, object) {
-    // This will NOT update the object mesh - only modifying the object blocks will.
-    const { blockKeys } = object;
-    if (!blockKeys || !blockKeys.length) return;
+const getChunkIDs = (world, blockKeys) => {
+    if (!blockKeys || !blockKeys.length) return [];
 
     // Get all unique chunks spanned by object
     const chunkIDs = [
         ...new Set(
             blockKeys.map((key) => {
                 const [x, y, z] = parseBlockKey(key);
-                var i = this._worldCoordToChunkCoord(x);
-                var j = this._worldCoordToChunkCoord(y);
-                var k = this._worldCoordToChunkCoord(z);
+                var i = world._worldCoordToChunkCoord(x);
+                var j = world._worldCoordToChunkCoord(y);
+                var k = world._worldCoordToChunkCoord(z);
                 return getChunkID(i, j, k);
             })
         ),
     ];
+    return chunkIDs;
+};
+
+/** @param x,y,z CUSTOM */
+World.prototype.getObject = function (x, y, z) {
+    var chunk = this._getChunkByCoords(x, y, z);
+    if (!chunk) return null;
+    const blockKey = getBlockKey(x, y, z);
+    const objectKey = chunk.blockToObject.get(blockKey);
+    if (!objectKey) return null;
+    const object = chunk.objects.get(objectKey);
+    object.key = objectKey;
+    return object;
+};
+
+/** @param key @CUSTOM */
+World.prototype.setObject = function (objectKey, object) {
+    // This will NOT update the object mesh - only modifying the object blocks will.
+    const { blockKeys } = object;
+    const chunkIDs = getChunkIDs(this, blockKeys);
 
     chunkIDs.forEach((id) => {
         const [i, j, k] = parseChunkID(id);
@@ -183,6 +200,25 @@ World.prototype.setObject = function (objectKey, object) {
             if (blockKeys) {
                 blockKeys.forEach((key) => {
                     chunk.blockToObject.set(key, objectKey);
+                });
+            }
+        }
+    });
+};
+
+/** @param x,y,z @CUSTOM */
+World.prototype.deleteObject = function (objectKey, object) {
+    const { blockKeys } = object;
+    const chunkIDs = getChunkIDs(this, blockKeys);
+
+    chunkIDs.forEach((id) => {
+        const [i, j, k] = parseChunkID(id);
+        const chunk = this._getChunk(i, j, k);
+        if (chunk) {
+            chunk.objects.delete(objectKey);
+            if (blockKeys) {
+                blockKeys.forEach((key) => {
+                    chunk.blockToObject.delete(key);
                 });
             }
         }

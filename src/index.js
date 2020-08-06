@@ -462,6 +462,11 @@ Engine.prototype.setObject = function (key, object) {
     this.world.setObject(key, object);
 };
 
+/** @CUSTOM */
+Engine.prototype.deleteObject = function (key, object) {
+    this.world.deleteObject(key, object);
+};
+
 /**
  * Adds a block unless obstructed by entities
  * @param id,x,y,z */
@@ -557,6 +562,20 @@ function updateBlockTargets(noa) {
             dat.position[1],
             dat.position[2]
         );
+        const object = noa.world.getObject(
+            dat.position[0],
+            dat.position[1],
+            dat.position[2]
+        );
+        if (object) {
+            const { key } = object;
+            delete object[key];
+            dat.objectKey = key;
+            dat.object = object;
+        } else {
+            dat.objectKey = null;
+            dat.object = null;
+        }
         // Fetch additional data for the object associated with this block in this chunk
         noa.targetedBlock = dat;
         newhash =

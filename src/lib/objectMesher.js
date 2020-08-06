@@ -8,7 +8,7 @@ var PROFILE = 0;
 // helper class to hold data about a single object mesh
 function ObjMeshDat(id, x, y, z) {
     this.id = id | 0;
-    this.x = x | 0;
+    this.x = x | 0; 
     this.y = y | 0;
     this.z = z | 0;
 }
