@@ -8,7 +8,7 @@ var PROFILE = 0;
 // helper class to hold data about a single object mesh
 function ObjMeshDat(id, x, y, z) {
     this.id = id | 0;
-    this.x = x | 0; 
+    this.x = x | 0;
     this.y = y | 0;
     this.z = z | 0;
 }
@@ -82,7 +82,7 @@ function ObjectMesher() {
             useModelMaterial: true,
         });
         for (var key in chunk._objectBlocks) {
-            console.log(key);
+            // console.log(key);
             var blockDat = chunk._objectBlocks[key];
             var blockID = blockDat.id;
             var mesh = objectMeshLookup[blockID];
@@ -120,7 +120,7 @@ function ObjectMesher() {
                     blockDat.z + 0.5
                 );
             };
-            console.log(mesh);
+            // console.log(mesh);
             sps.addShape(mesh, 1, { positionFunction: setShape });
         }
         const merged = sps.buildMesh();
