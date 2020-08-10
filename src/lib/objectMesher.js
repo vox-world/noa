@@ -84,7 +84,7 @@ function ObjectMesher() {
             enableMultiMaterial: true,
         });
         for (var key in chunk._objectBlocks) {
-            console.log(key);
+            // console.log(key);
             var blockDat = chunk._objectBlocks[key];
             var blockID = blockDat.id;
             var mesh = objectMeshLookup[blockID];
@@ -123,9 +123,7 @@ function ObjectMesher() {
                 );
                 console.log(particle.position);
             };
-            console.log(mesh);
-            console.log("adding this shit to sps");
-
+            // console.log(mesh);
             sps.addShape(mesh, 1, { positionFunction: setShape });
 
             console.log(sps);
