@@ -1,4 +1,5 @@
 import { SolidParticleSystem } from "@babylonjs/core/Particles/solidParticleSystem";
+import "@babylonjs/core/Loading/loadingScreen";
 
 export default new ObjectMesher();
 
@@ -80,6 +81,7 @@ function ObjectMesher() {
         var sps = new SolidParticleSystem("object_sps_" + chunk.id, scene, {
             updatable: false,
             useModelMaterial: true,
+            enableMultiMaterial: true,
         });
         for (var key in chunk._objectBlocks) {
             console.log(key);
@@ -116,12 +118,17 @@ function ObjectMesher() {
             var setShape = function (particle, partIndex, shapeIndex) {
                 particle.position.set(
                     blockDat.x + 0.5,
-                    blockDat.y,
+                    blockDat.y + 0.5,
                     blockDat.z + 0.5
                 );
+                console.log(particle.position);
             };
             console.log(mesh);
+            console.log("adding this shit to sps");
+
             sps.addShape(mesh, 1, { positionFunction: setShape });
+
+            console.log(sps);
         }
         const merged = sps.buildMesh();
         chunk._objectSystems.push(merged);
