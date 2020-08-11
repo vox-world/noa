@@ -6,7 +6,7 @@ import { FreeCamera } from "@babylonjs/core/Cameras/freeCamera";
 import { UniversalCamera } from "@babylonjs/core/Cameras/universalCamera";
 import { Octree } from "@babylonjs/core/Culling/Octrees/octree";
 import { OctreeBlock } from "@babylonjs/core/Culling/Octrees/octreeBlock";
-import { Engine } from "@babylonjs/core/Engines/engine";
+import { Engine } from "@babylonjs/core";
 import { HemisphericLight } from "@babylonjs/core/Lights/hemisphericLight";
 import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
 import { Vector3, Color3 } from "@babylonjs/core/Maths/math";
